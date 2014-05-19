@@ -4,7 +4,7 @@
     "description": "Simple Nodejs Chat Application",
     "main": "app.js",
     "dependencies": {
-        "socket.io": "^0.916"
+        "socket.io": "*"
     },
     "devDependencies": {},
     "scripts": {
