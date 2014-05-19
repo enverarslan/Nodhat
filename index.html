@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Chat Odası</title>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+    <link type="text/css" rel="stylesheet" href="assets/css/style.css" />
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js" type="text/javascript"></script>
+    <script src="assets/js/string.js" type="text/javascript"></script>
+    <script src="assets/js/animate-colors-min.js" type="text/javascript"></script>
+    <script src="assets/js/urlize.js" type="text/javascript"></script>
+    <script src="http://localhost:1200/socket.io/socket.io.js"></script>
+    <script src="assets/js/client.js" type="text/javascript"></script>
+</head>
+
+<body>
+    <div id="giris" class="grad">
+        <label id="kul">Kullanıcı Adı :</label>
+        <input id="kullanici" type="text" placeholder="Adını yaz, enterla!" />
+        </sub>
+        <div id="uyari"></div>
+    </div>
+    <section id="users" class="grad">
+        <h3>Çevrimiçi Kullanıcılar</h3>
+        <div id="kullanicilar"></div>
+        <p id="copy">Developed by <a href="http://vefasizalem.com" target="blank">Enver Arslan</a> with <a href="http://nodejs.org" target="blank">Node.JS</a>
+        </p>
+    </section>
+    <section id="main">
+        <div id="mesajlar">
+            <ul id="mesaj"></ul>
+        </div>
+        <div id="gonderici" class="grad">
+            <div id="gonderic">
+                <input type="text" id="icerik" />
+                <button id="gonder">Gönder</button>
+            </div>
+        </div>
+    </section>
+    <audio id="audio">
+        <source src="assets/sounds/chat.mp3" type="audio/mpeg" />
+        <source src="assets/sounds/chat.wav" type="audio/wav" />
+    </audio>
+
+</body>
+
+</html>
