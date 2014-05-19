@@ -4,18 +4,16 @@
     "description": "Simple Nodejs Chat Application",
     "main": "app.js",
     "scripts": {
-        "start": "node app.js"
+        "start": "node app.js",
+        "test": "echo Error: no test specified && exit 1"
     },
     "dependencies": {
         "socket.io": "^0.9.16"
     },
     "devDependencies": {},
-    "scripts": {
-        "test": "echo \"Error: no test specified\" && exit 1"
-    },
     "engines": {
     "node": "0.10.x"
-    }
+    },
     "repository": {
         "type": "git",
         "url": "https://github.com/enverarslan/Nodhat"
