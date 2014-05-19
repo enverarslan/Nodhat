@@ -1,7 +1,7 @@
 {
-    "name": "chat",
-    "version": "0.0.0",
-    "description": "",
+    "name": "Nodhat",
+    "version": "0.0.1",
+    "description": "Simple Nodejs Chat Application",
     "main": "app.js",
     "dependencies": {
         "socket.io": "^0.916"
@@ -10,6 +10,6 @@
     "scripts": {
         "test": "echo \"Error: no test specified\" && exit 1"
     },
-    "author": "",
+    "author": "Enver Arslan <enver@programmer.net>",
     "license": "ISC"
 }
