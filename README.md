@@ -1,4 +1,3 @@
-#NodHat
 ![NodeHat](/assets/img/logo.png)
 
 Simple Nodejs Chat Application. 
