@@ -1,137 +1,194 @@
 var app = require('http').createServer(handler),
     io = require('socket.io').listen(app),
-    fs = require('fs'),
-    path = require('path');
+    Handler = require('./lib/handlers.js'),
+    config = require('./config/config')().getSettings(),
+    DB = require('./lib/db');
 
-app.listen(1200);
+app.listen(config.server.port, config.server.host);
 io.set("browser client minification", 1);
 io.set('log level', 1);
 
 function handler(req, res) {
-
-    var filePath = '.' + req.url;
-    if (filePath == './')
-        filePath = './index.html';
-
-    var extname = path.extname(filePath);
-    var contentType = 'text/html';
-    switch (extname) {
-        case '.js':
-            contentType = 'text/javascript';
-            break;
-        case '.css':
-            contentType = 'text/css';
-            break;
-        case '.mp3':
-            contentType = 'audio/mpeg';
-            break;
-
-        case '.wav':
-            contentType = 'audio/wav';
-            break;
+    /* POST METHOD */
+    if (req.method == "POST") {
+        Handler.postHandler(req, res);
+    } else {
+        Handler.staticHandler(req, res);
     }
-
-    fs.exists(filePath, function(exists) {
-
-        if (exists) {
-            fs.readFile(filePath, function(error, content) {
-
-                if (filePath == './app.js') {
-                    res.writeHead(404);
-                    res.end();
-                } else if (error) {
-                    res.writeHead(500);
-                    res.end();
-                } else {
-                    res.writeHead(200, {
-                        'Content-Type': contentType
-                    });
-                    res.end(content, 'utf-8');
-                }
-            });
-        } else {
-            res.writeHead(404);
-            res.end();
-        }
-    });
 }
-
-var kullanicilar = {};
 
 io.sockets.on('connection', function(socket) {
 
-    delete kullanicilar['undefined'];
+    var messager = {};
 
-    socket.on("sunucu_kullaniciKontrol", function(kullanici) {
-        kullanici = cleaner(kullanici);
-        if ((typeof kullanicilar[kullanici] !== 'undefined') || kullanici === 'undefined') {
-            socket.emit("istemci_kullaniciGiris", {
-                giris: false
+    /* Sockets Catcher **/
+    socket.on('sunucu_mesajGonder', function(data) {
+        data = cleaner(data);
+        io.sockets.emit("istemci_mesajAl", {
+            user: socket.user.name,
+            message: data
+        });
+        socket.broadcast.emit('istemci_bildirim', {
+            yazan: socket.user.name
+        });
+        /* Write DB */
+        new DB.Message({
+            user: socket.user.name,
+            message: data
+        }).save();
+    });
+
+
+    /* If user disconnected remove db. */
+    socket.on("disconnect", function() {
+        if (typeof socket.user != 'undefined ' && socket.user != undefined) {
+            DB.User.find({
+                name: socket.user.name
+            }, function(err, users) {
+                if (err) next();
+
+                for (i in users) {
+                    users[i].remove();
+                }
+
+                //trigger logoutAfter
+                messager.logoutAfter();
             });
-        } else {
-
-            socket.kullaniciadi = kullanici;
-
-            // Array'e kullanıcı bilgilerini ekliyoruz
-            kullanicilar[kullanici] = kullanici;
-
-            socket.emit('istemci_sistemMesajAl', {
-                yazan: "Sistem",
-                mesaji: "Hoşgeldiniz!"
-            });
-
-            fs.readFile("chat.json", 'utf8', function(err, data) {
-                socket.emit("gecmisiOku", data);
-            });
-
-            // Bütün kullanıcılarda Kullanıcı listesini yeniliyoruz
-            io.sockets.emit("istemci_kullanicilariYenile", kullanicilar);
-
-
-            socket.broadcast.emit("istemci_sistemMesajAl", {
-                yazan: "Sistem",
-                mesaji: socket.kullaniciadi + ' bağlandı.'
-            });
-            socket.emit("istemci_kullaniciGiris", {
-                giris: true
-            });
-
         }
     });
 
-    socket.on('sunucu_mesajGonder', function(data) {
-        data = cleaner(data);
+    socket.on("login", function(user) {
 
-        io.sockets.emit("istemci_mesajAl", {
-            yazan: socket.kullaniciadi,
-            mesaji: data
+        /* Attempt Login */
+        messager.attemptLogin(user, function(u) {
+            socket.emit("login.after", {
+                name: socket.user.name,
+                login: true
+            });
+            messager.loginAfter(user);
+
         });
 
-        socket.broadcast.emit('istemci_bildirim', {
-            yazan: socket.kullaniciadi
-        });
-
-        var gecmismesaj = JSON.stringify({
-            yazan: socket.kullaniciadi,
-            mesaji: data
-        }, null, 0) + ",";
-        fs.appendFile("chat.json", gecmismesaj, function(err) {});
     });
 
 
-    // Bağlantı kesildiği takdirde çalışacak fonksiyon
-    socket.on("disconnect", function() {
-        // Kullanıcıyı listeden siliyoruz
-        delete kullanicilar[socket.kullaniciadi];
-        socket.broadcast.emit("istemci_sistemMesajAl", {
-            yazan: "Sistem",
-            mesaji: socket.kullaniciadi + ' ayrıldı.'
+
+    messager.attemptLogin = function(user, cb) {
+        if (user.login) {
+            messager.findUser(user, cb);
+        } else {
+            messager.addUser(user, cb);
+        }
+    };
+
+    /* Find User */
+    messager.findUser = function(user, cb) {
+        DB.User.findOne({
+            name: user.name
+        }, function(err, u) {
+            if (err) next();
+            socket.user = {
+                id: u._id,
+                name: u.name
+            };
+            if (cb) return cb(u);
         });
-        // Bağlı kullanıcılarda Kullanıcı listesini yeniliyoruz
-        io.sockets.emit("istemci_kullanicilariYenile", kullanicilar);
-    });
+    };
+
+    /* Add User */
+    messager.addUser = function(user, cb) {
+        var u = new DB.User({
+            name: user.name
+        });
+        u.save(function(err) {
+            if (err) next();
+            socket.user = {
+                id: u._id,
+                name: u.name
+            };
+            if (cb) return cb(u);
+        });
+    };
+
+    messager.loginAfter = function(user, cb) {
+        messager.updateOnlines(function() {
+            if (!user.login) {
+                messager.getRecentMessages(function() {
+                    socket.broadcast.emit("istemci_sistemMesajAl", {
+                        user: "Sistem",
+                        message: socket.user.name + ' connected.'
+                    });
+                    if (cb) return cb();
+                });
+            } else {
+                socket.broadcast.emit("istemci_sistemMesajAl", {
+                    user: "Sistem",
+                    message: socket.user.name + ' connected.'
+                });
+                if (cb) return cb();
+            }
+
+        });
+    };
+
+    messager.logoutAfter = function() {
+        messager.updateOnlines(function() {
+            socket.broadcast.emit("istemci_sistemMesajAl", {
+                user: "Sistem",
+                message: socket.user.name + ' disconnected.'
+            });
+        });
+
+    };
+    messager.updateOnlines = function(cb) {
+        DB.User.find({}, function(err, users) {
+            io.sockets.emit("istemci_kullanicilariYenile", users);
+            if (cb) return cb();
+        });
+    };
+    messager.getRecentMessages = function(cb) {
+        DB.Message.find({}).sort({
+            date: -1
+        }).limit(20).exec(function(err, messages) {
+            socket.emit("gecmisiOku", messages);
+            if (cb) return cb();
+        });
+    };
 
 });
+
+/* 
+ *
+ * Delete Old Message from MongoDB.
+ *
+ * @time 1 hour.
+ * @deleteCount All messages except last 20 messages.
+ *
+ * Future: Implement Redis Interface
+ *
+ */
+
+(function deleteOldMessages() {
+    DB.Message.count({}, function(e, count) {
+        deleteCount = count - 20; //Keep last 20 message.
+        if (deleteCount > 20) {
+            var q = DB.Message.find()
+                .sort('date')
+                .limit(deleteCount);
+            q.exec(function(err, messages) {
+                for (i in messages) {
+                    messages[i].remove();
+                }
+
+            });
+        }
+    });
+
+    setInterval(function() {
+        deleteOldMessages();
+    }, 1000 * 60 * 60);
+
+})(DB.Message);
 
 /** Clean Data
 Add: functionality

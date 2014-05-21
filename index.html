@@ -4,6 +4,9 @@
 <head>
     <title>Chat Odası</title>
     <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+    <link type="text/css" rel="stylesheet" href="http://fortawesome.github.io/Font-Awesome/assets/font-awesome/css/font-awesome.css">
+    <link type="text/css" rel="stylesheet" href="http://necolas.github.io/normalize.css/3.0.1/normalize.css">
+
     <link type="text/css" rel="stylesheet" href="assets/css/style.css" />
     <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js" type="text/javascript"></script>
     <script src="assets/js/string.js" type="text/javascript"></script>
@@ -15,26 +18,33 @@
 
 <body>
     <div id="giris" class="grad">
-        <label id="kul">Kullanıcı Adı :</label>
-        <input id="kullanici" type="text" placeholder="Adını yaz, enterla!" />
-        </sub>
+        <h1><i class="fa fa-send logo"></i> NodHat</h1>
+        <input id="username" type="text" placeholder="nick" />
+        <button id="loginButton" onclick="javascript:void(0);">Log Me In</button>
         <div id="uyari"></div>
+        <div class="clearfix"></div>
     </div>
-    <section id="users" class="grad">
-        <h3>Çevrimiçi Kullanıcılar</h3>
-        <div id="kullanicilar"></div>
-        <p id="copy">Developed by <a href="http://vefasizalem.com" target="blank">Enver Arslan</a> with <a href="http://nodejs.org" target="blank">Node.JS</a>
+    <section id="users">
+        <h3><i class="fa fa-users"></i> <span class="users_count"></span> &middot; Online </h3>
+        <ul id="users_list"></ul>
+        <div class="copy">
+            <p id="copy">Available on <a href="https://github.com/enverarslan/Nodhat" target="_blank">Github</a>.
+                <br/>Developed by <a href="http://vefasizalem.com" target="blank">Enver Arslan</a> with <a href="http://nodejs.org" target="blank">Node.JS</a>
+        </div>
         </p>
     </section>
     <section id="main">
         <div id="mesajlar">
             <ul id="mesaj"></ul>
         </div>
-        <div id="gonderici" class="grad">
+        <div id="gonderici">
             <div id="gonderic">
                 <input type="text" id="icerik" />
-                <button id="gonder">Gönder</button>
+                <button id="gonder"><i class="fa fa-send"></i> Send</button>
+                <div class="status" title="Connected, lets talk!"></div>
+                <div class="clearfix"></div>
             </div>
+
         </div>
     </section>
     <audio id="audio">

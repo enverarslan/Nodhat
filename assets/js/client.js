@@ -1,40 +1,52 @@
-// Global değişkenler.
+// Global
 var socket, io;
 
-var Chat = (function(kullaniciadi) {
+var Chat = (function(username, login) {
+
+    var User = {
+        name: username,
+        login: (login) ? 1 : 0
+    };
 
     // Zaten oturum açtıysa 2. bir örneği oluşturma.
-    if (window.login) throw "Zaten giriş yapmış görünüyorsunuz!";
+    if (typeof User.login != 'undefined' && User.login) return;
 
     // Sunucuya bağlan.
     var socket = io.connect("http://localhost:1200"),
         chatter = this; // Fix.
 
-    /* Giriş İşlemleri */
-    socket.emit("sunucu_kullaniciKontrol", kullaniciadi);
+    socket.on('connect', function() {
+        socket.emit('login', User);
+    });
 
-    socket.on("istemci_kullaniciGiris", function(a) {
-        if (!a.giris) {
-            $("#uyari").html("Kullanıcı adı mevcut!");
-        } else {
+    socket.on('login.after', function(data) {
 
+        if (User.login) {
+            chatter.statusViewer('connected');
+        } else { //First Login
             $("#uyari").remove();
 
             $("#giris").animate({
+                left: "+=5%"
+            }, 500).animate({
                 left: "-=100%"
-            }, 1500, function() {
+            }, 1000, function() {
                 $(this).remove();
                 $("#users, #main").fadeIn();
                 $("#mesajlar").stop().animate({
                     scrollTop: $("#mesaj").height()
                 }, 100);
+                $("#icerik").focus();
             });
 
-            window.login = true;
 
+            User.login = true;
+            window.LOGIN = true;
         }
-    });
 
+
+
+    });
 
     /* Mesaj Gönder */
 
@@ -51,70 +63,79 @@ var Chat = (function(kullaniciadi) {
     });
 
 
-    socket.on("istemci_kullanicilariYenile", function(kullanicilar) {
-        $("#kullanicilar").empty();
-        var sayi = 0;
-        $.each(kullanicilar, function(c, kullanici) {
-            $("#kullanicilar").append("<p>" + kullanici + "</p>");
-            sayi++;
+    socket.on("istemci_kullanicilariYenile", function(users) {
+        $container = $("#users_list");
+        $container.empty();
+        $.each(users, function(c, user) {
+            $container.append("<li><i class='fa fa-user'></i> <span>" + user.name + "</span></li>");
         });
-        $("section#users h3").html("Çevrimiçi kullanıcılar(" + sayi + ")");
+        $("section#users h3 .users_count").html(users.length);
     });
 
     /* Geçmişi oku || JSON dosyasını Redis ya da MongoDB'ye çevir.*/
-    socket.on("gecmisiOku", function(mesajlar) {
-        mesajlar = mesajlar.substring(0, mesajlar.length - 1);
-        mesajlar = jQuery.parseJSON("[" + mesajlar + "]");
-        $.each(mesajlar, function(c, m) {
-            $("ul#mesaj").append("<li><span class='username'>" + m.yazan + "</span> : <span class='message'>" + urlize(m.mesaji, "nofollow", 1, 50, "_blank") + "</span></li>");
+    socket.on("gecmisiOku", function(messages) {
+        $container = $("ul#mesaj");
+        messages = messages.reverse(); // Because Last message must be bottom in container
+        $.each(messages, function(c, m) {
+            $container.append("<li><span class='username'>" + m.user + "</span> : <span class='message'>" + urlize(m.message, "nofollow", 1, 50, "_blank") + "</span></li>");
         });
+
+        $container.append("<li class='system'><span class='message'>Welcome!, say Hi to strangers!</span></li>");
     });
+
+
+
 
     this.animator = function() {
         $("#mesajlar").stop().animate({
             scrollTop: $("#mesaj").height()
         }, 500);
         $("ul#mesaj li").last().animate({
-            backgroundColor: "#F5F240"
+            backgroundColor: "#2f3238"
         });
         $("ul#mesaj li").last().animate({
-            backgroundColor: "#FAFAFA"
+            backgroundColor: "#1D1F21"
         });
     };
 
-    this.mesajYaz = function(mesaj, tip) {
-        if (mesaj.mesaji.length > 200) {
+    this.mesajYaz = function(message, tip) {
+        if (message.message.length > 200) {
             return false
         }
         if (tip === undefined || tip === null) tip = 0;
         switch (tip) {
             case 1:
                 tip = 'system';
+                var tpl = "<li class='" + tip + "'><span class='message'>" +
+                    urlize(message.message, "nofollow", 1, 50, "_blank") +
+                    "</span></li>";
                 break;
             default:
                 tip = 'user';
+                var tpl = "<li class='" + tip + "'><span class='username'>" +
+                    message.user + "</span> : <span class='message'>" +
+                    urlize(message.message, "nofollow", 1, 50, "_blank") +
+                    "</span></li>";
                 break;
         }
 
-        var tpl = "<li class='" + tip + "'><span class='username'>" +
-            mesaj.yazan + "</span> : <span class='message'>" +
-            urlize(mesaj.mesaji, "nofollow", 1, 50, "_blank") +
-            "</span></li>";
+
 
         $("ul#mesaj").append(tpl);
-        $("#icerik").val("");
         chatter.animator();
 
     };
 
     this.mesajGonder = function() {
         var mesaj = $.trim($("#icerik").val());
-        var a = new Date().getSeconds();
-        if (mesaj === "") {
+        if (mesaj == "") {
             return;
         } else if (mesaj.length > 200) {
-            return alert("200 karakterden daha uzun mesajlar göndermezsiniz!");
+            return alert("Please write less!");
+        } else if (!User.login) {
+            return;
         } else {
+            $("#icerik").val("");
             socket.emit("sunucu_mesajGonder", mesaj);
         }
     };
@@ -124,49 +145,131 @@ var Chat = (function(kullaniciadi) {
         sound.load();
         sound.play();
         return false;
+    };
+
+    this.statusViewer = function(type) {
+        $statusBar = $(".status");
+
+        switch (type) {
+            case 'connected':
+                $statusBar.attr('title', 'Connected, lets talk!').animate({
+                    backgroundColor: "#9fbb58"
+                });
+                break;
+            case 'disconnected':
+                $statusBar.attr('title', 'Disconnected, please wait...').animate({
+                    backgroundColor: "#e64b50"
+                });
+                break;
+            case 'idle':
+                break;
+            default:
+                break;
+        }
+
+        if (type) {
+
+        }
+
     }
 
-    /* Mesaj Gönderme */
+    /* Message */
 
-    //Enter ile gönder 	
+    //Enter 	
     $(document).on("keypress", "#icerik", function(e) {
         if (e.which == 13) {
             chatter.mesajGonder();
         }
     });
-    // Buton ile gönder
+    // Button
     $(document).on("click", "#gonder", function() {
         chatter.mesajGonder();
     });
 
-});
+    socket.on('disconnect', function() {
+        chatter.statusViewer('disconnected');
 
-/* Giriş Yapma */
+        try {
+            new Chat(User.name, 1);
+        } catch (e) {
 
-$(document).on("keypress", "#kullanici", function(e) {
-    if (e.which === 13) {
-        e.preventDefault();
-        var misafir = $.trim($("#kullanici").val());
-        if (misafir === "" || misafir === "undefined") {
-            $("#uyari").html("Kullanıcı adı boş olamaz!");
-        } else if (misafir.length > 15) {
-            $("#uyari").html("15 karakterden daha uzun kullanıcı adı alamazsınız!");
-        } else if (misafir === "Sistem") {
-            $("#uyari").html("Farklı bir kullanıcı adi seçin.");
-        } else {
-            $("#uyari").html("Giriş yapılıyor, lütfen bekleyin...");
-            new Chat(misafir);
         }
-        return false;
-    }
-});
 
-/* Çıkış sorusu */
-window.onbeforeunload = function() {
-    if (login)
-        return "Oturumu kapatmak istediğinizden emin misiniz?";
-};
+    });
+
+}); // Chat Ended.
+
+/* Login */
+function login() {
+    var validation = true;
+    var input = $("#username");
+    var misafir = $.trim(input.val());
+
+    //console.log(misafir);
+
+    if (misafir === "") {
+        $("#uyari").html("Please enter your nick!");
+        validation = false;
+        allowAction();
+    } else if (misafir.length > 15) {
+        $("#uyari").html("Nickname is not be more than 15 characters!");
+        allowAction();
+        validation = false;
+    } else if (validation == true) {
+        preventDouble();
+        $.ajax({
+            type: "POST",
+            url: '/login',
+            data: {
+                user: misafir
+            },
+            error: function(e) {
+                console.log(e);
+            },
+            success: function(data) {
+                if (data.status) {
+                    $("#uyari").html("You are in yo! Please wait...");
+                    setTimeout(function() {
+                        new Chat(misafir);
+                    }, 1000);
+                } else {
+                    $("#uyari").html("Nick exist, choose another!");
+                    allowAction();
+                }
+            },
+        });
+
+    }
+
+    function preventDouble() {
+        $("#loginButton, #username").prop("disabled", true);
+    }
+
+    function allowAction() {
+        $("#loginButton, #username").prop("disabled", false);
+    }
+    return false;
+}
 
 $(function() {
+    $("#username").focus();
+
+    /* Login */
+    $("#loginButton").click(function(e) {
+        e.preventDefault();
+        return login();
+    });
+    $("#username").on("keypress", function(e) {
+        if (e.which == 13) {
+            e.preventDefault();
+            return login();
+        }
+    });
 
 });
+
+/* Exit */
+window.onbeforeunload = function() {
+    if (LOGIN)
+        return "Are You Exit?";
+};

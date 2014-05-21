@@ -1,11 +1,15 @@
-body {
-    overflow: hidden;
-    font-family: Arial, Helvetica, sans-serif;
-    background: #FAFAFA;
-}
 * {
     margin: 0;
     padding: 0;
+    outline: none;
+}
+a {
+    text-decoration: none;
+}
+body {
+    overflow: hidden;
+    font-family: Arial, Helvetica, sans-serif;
+    background: #1D1F21;
 }
 #main {
     position: absolute;
@@ -19,22 +23,21 @@ body {
 #main {
     display: none;
 }
-.grad {
-    border: 1px solid #CACACA;
-    background: #FAFAFA;
-    background: linear-gradient(#FAFAFA, #EAEAEA);
-    background: -moz-linear-gradient(#FAFAFA, #EAEAEA);
-    background: -webkit-linear-gradient(#FAFAFA, #EAEAEA);
-    -ms-filter: "progid:DXImageTransform.Microsoft.gradient(startColorstr='#fafafa',endColorstr='#eaeaea')";
-    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.4), 0 0 10px rgba(0, 0, 0, 0.1);
+.clearfix {
+    clear: both;
 }
 #giris {
     top: 50%;
     left: 50%;
     position: absolute;
     width: 300px;
-    padding: 20px;
-    margin: -50px 0 0 -171px;
+    margin: -56px 0 0 -171px;
+}
+#giris h1 {
+    color: #ff7900;
+}
+#giris h1 .logo {
+    color: #4a742c
 }
 #kul {
     margin-right: 20px;
@@ -42,9 +45,19 @@ body {
     font-weight: bold;
     color: #474646;
 }
-#kullanici {
+#username {
+    float: left;
     padding: 5px;
-    width: 170px;
+    width: 200px;
+    border: none;
+    height: 22px;
+}
+#loginButton {
+    float: left;
+    height: 32px;
+    width: 90px;
+    border: none;
+    background: #78a300;
 }
 #users {
     z-index: 2;
@@ -53,23 +66,41 @@ body {
     height: 100%;
     width: 20%;
     border-width: 0 0 1px 1px;
+    background: #47535b;
 }
 #users h3 {
+    background: #9dbc7a;
     padding: 5px;
-    border-bottom: 1px solid #70A241;
-    color: #70A241;
+    color: #444;
     font-size: 14px;
 }
 #users p {
     padding: 2px 5px;
     font-weight: bold;
-    color: #535252;
     font-size: 12px;
+}
+#users_list {
+    list-style-type: none;
+    padding: 5px;
+    overflow: auto;
+    /* position: absolute; */
+    height: 80%;
+}
+#users_list li {
+    background: #434F57;
+    padding: 2px;
+    margin-top: 1px;
+}
+#users_list li span {
+    color: #ffcc00;
+    font-size: .8em;
+}
+#users_list li i {
+    color: #52b043
 }
 #mesajlar {
     overflow: auto;
     height: 80%;
-    width: 105%;
 }
 #mesaj {
     padding: 10px;
@@ -78,16 +109,30 @@ body {
     list-style-type: none;
     font-size: 14px;
     padding: 3px;
+    color: #eeebac;
+}
+.message {
+    color: #c5c8c6;
 }
 .message a {
     color: #e53b2c
 }
 .username {
     font-weight: bold;
+    color: #c68143;
+    font-size: 0.9em;
 }
 li.system .username {
-    font-size: 0.9em;
     color: rgb(170, 0, 0);
+}
+.status {
+    right: 0;
+    width: 15px;
+    height: 100%;
+    position: absolute;
+    background: #9fbb58;
+    /*#e64b50; */
+    top: 0;
 }
 li.system .message {
     font-size: 0.9em;
@@ -96,22 +141,30 @@ li.system .message {
 }
 #gonderici {
     height: 20%;
-    width: 99.9%;
     border-width: 1px 0 0 0;
+    background: #444;
+    position: relative;
 }
 #gonderic {
     padding: 10px 10px 30px 10px;
+    overflow: auto
 }
 #icerik {
     float: left;
-    padding: 5px 10px;
+    padding: 0 10px;
     width: 50%;
+    border: 0;
+    background: #e1e8ed;
+    height: 29px;
 }
 #gonder {
     float: left;
     margin: 0 10px;
-    height: 30px;
+    height: 29px;
     width: 100px;
+    background: #82b541;
+    border: 0;
+    color: #333;
 }
 #copy {
     position: absolute;
@@ -122,9 +175,8 @@ li.system .message {
     color: #000;
 }
 #uyari {
+    line-height: 24px;
     font-size: 12px;
     font-weight: bold;
-    color: rgb(189, 6, 6);
-    text-align: center;
-    padding: 10px 0 0 0;
+    color: #dc5034;
 }
