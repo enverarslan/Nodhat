@@ -36,8 +36,9 @@ body {
 #giris h1 {
     color: #ff7900;
 }
-#giris h1 .logo {
-    color: #4a742c
+#giris h1.logo {
+    background: url("../img/logo.png") no-repeat;
+    text-indent: -9999px;
 }
 #kul {
     margin-right: 20px;
@@ -113,6 +114,12 @@ body {
 }
 .message {
     color: #c5c8c6;
+    -ms-word-break: break-all;
+    word-break: break-word;
+    word-wrap: break-word;
+    -webkit-hyphens: auto;
+    -moz-hyphens: auto;
+    hyphens: auto;
 }
 .message a {
     color: #e53b2c
