@@ -31,7 +31,6 @@ function handler(req, res) {
  *
  *
  */
-
 io.sockets.on('connection', function(socket) {
 
     /* Messager
@@ -234,7 +233,6 @@ io.sockets.on('connection', function(socket) {
  */
 (function() {
     function deleteOldMessages() {
-        console.log('calisti');
         DB.Message.count({}, function(e, count) {
             deleteCount = count - 20; //Keep last 20 message.
             if (deleteCount > 20) {
