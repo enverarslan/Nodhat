@@ -8,6 +8,7 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
+    "mime": "^1.2.11",
     "mongoose": "^3.8.9",
     "socket.io": "^0.9.16"
   },

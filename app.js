@@ -1,11 +1,11 @@
 var app = require('http').createServer(handler),
     io = require('socket.io').listen(app),
-    Handler = require('./lib/handlers.js'),
-    config = require('./config/config')().getSettings(),
+    Handlers = require('./lib/handlers.js'),
+    settings = require('./config/host').settings(),
     DB = require('./lib/db');
 
 /* Listen app with configs. */
-app.listen(config.server.port, config.server.host);
+app.listen(settings.server.port, settings.server.host);
 
 /* Socket.io configs */
 io.set("browser client minification", 1);
@@ -20,9 +20,9 @@ io.set('log level', 1);
 function handler(req, res) {
     /* POST METHOD */
     if (req.method == "POST") {
-        Handler.postHandler(req, res);
+        Handlers.postHandler(req, res);
     } else {
-        Handler.staticHandler(req, res);
+        Handlers.staticHandler(req, res);
     }
 }
 
@@ -43,28 +43,6 @@ io.sockets.on('connection', function(socket) {
 
     var messager = {};
 
-    /* User Login
-     *
-     * If user relogin so server crashed and again refreshed,
-     * we use 'user' object on loginAfter filter
-     * for keep user session with same user informations.
-     *
-     * @Processes: attemtLogin
-     * @Emitters: login.after
-     *
-     *
-     */
-    socket.on("login", function(user) {
-        messager.attemptLogin(user, function(loggedinUser) {
-            socket.user = {
-                id: loggedinUser._id,
-                name: loggedinUser.name
-            };
-            socket.emit("login.after", socket.user);
-            messager.loginAfter(user);
-        });
-    });
-
     /* Attempt Login
      * Attempts user login with new or exist user.
      *
@@ -82,7 +60,6 @@ io.sockets.on('connection', function(socket) {
      *
      *
      */
-
     messager.findUser = function(user, cb) {
         DB.User.findOne({
             name: user.name
@@ -99,7 +76,6 @@ io.sockets.on('connection', function(socket) {
      *
      *
      */
-
     messager.addUser = function(user, cb) {
         //if(typeof user.id == )
         var u = new DB.User({
@@ -144,7 +120,6 @@ io.sockets.on('connection', function(socket) {
      *
      *
      */
-
     messager.logoutAfter = function() {
         messager.updateOnlines(function() {
             socket.broadcast.emit("client.system.message", {
@@ -161,7 +136,6 @@ io.sockets.on('connection', function(socket) {
      *
      *
      */
-
     messager.updateOnlines = function(cb) {
         DB.User.find({}, function(err, users) {
             io.sockets.emit("client.updateUsers", users);
@@ -177,7 +151,6 @@ io.sockets.on('connection', function(socket) {
      *
      *
      */
-
     messager.getRecentMessages = function(cb) {
         DB.Message.find({}).sort({
             date: -1
@@ -208,6 +181,28 @@ io.sockets.on('connection', function(socket) {
         }).save();
     });
 
+    /* User Login
+     *
+     * If user relogin so server crashed and again refreshed,
+     * we use 'user' object on loginAfter filter
+     * for keep user session with same user informations.
+     *
+     * @Processes: attemtLogin
+     * @Emitters: login.after
+     *
+     *
+     */
+    socket.on("login", function(user) {
+        messager.attemptLogin(user, function(loggedinUser) {
+            socket.user = {
+                id: loggedinUser._id,
+                name: loggedinUser.name
+            };
+            socket.emit("login.after", socket.user);
+            messager.loginAfter(user);
+        });
+    });
+
     /* Socket Disconnected 
      *
      * Delete User Form DB. Notify other users...
@@ -217,7 +212,6 @@ io.sockets.on('connection', function(socket) {
      *
      *
      */
-
     socket.on("disconnect", function() {
         if (typeof socket.user !== "undefined" && socket.user) {
             DB.User.findById(socket.user.id, function(err, user) {
@@ -238,22 +232,25 @@ io.sockets.on('connection', function(socket) {
  *
  *
  */
+(function() {
+    function deleteOldMessages() {
+        console.log('calisti');
+        DB.Message.count({}, function(e, count) {
+            deleteCount = count - 20; //Keep last 20 message.
+            if (deleteCount > 20) {
+                var q = DB.Message.find()
+                    .sort('date')
+                    .limit(deleteCount);
+                q.exec(function(err, messages) {
+                    for (i in messages) {
+                        messages[i].remove();
+                    }
 
-(function deleteOldMessages() {
-    DB.Message.count({}, function(e, count) {
-        deleteCount = count - 20; //Keep last 20 message.
-        if (deleteCount > 20) {
-            var q = DB.Message.find()
-                .sort('date')
-                .limit(deleteCount);
-            q.exec(function(err, messages) {
-                for (i in messages) {
-                    messages[i].remove();
-                }
-
-            });
-        }
-    });
+                });
+            }
+        });
+    }
+    deleteOldMessages();
     setInterval(function() {
         deleteOldMessages();
     }, 1000 * 60 * 60);
