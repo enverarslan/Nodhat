@@ -16,7 +16,7 @@ var userSchema = new Schema({
     lastLogin: {
         type: Date,
         default: Date.now
-    },
+    }
 });
 
 

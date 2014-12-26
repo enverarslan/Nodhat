@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Nodhat</title>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+    <link type="text/css" rel="stylesheet" href="assets/css/normalize.css">
+    <link type="text/css" rel="stylesheet" href="assets/css/style.css" />
+    <link type="text/css" rel="stylesheet" href="assets/css/font-awesome.min.css">
+</head>
+<body>
+    <!-- Login Box -->
+    <div id="login" class="grad">
+        <h1 class="logo">NodHat</h1>
+        <form action="/login" method="post" id="loginForm">
+            <input id="username" name="username" type="text" placeholder="nick" maxlength="15"/>
+            <button type="submit"><i class="fa fa-send logo"></i></button>
+        </form>
+        <div class="alert"></div>
+        <div class="clearfix"></div>
+    </div>
+    <!-- Users Box -->
+    <section id="users">
+        <h3><i class="fa fa-users"></i> <span class="users_count"></span> &middot; Online </h3>
+        <ul id="users_list"></ul>
+        <div class="copy">
+            <p id="copy">Available on <a href="https://github.com/enverarslan/Nodhat" target="_blank">Github</a>.<br/>Developed by <a href="https://github.com/enverarslan" target="blank">Enver Arslan</a> with <a href="http://nodejs.org" target="blank">Node.JS</a></p>
+        </div>
+    </section>
+    <!-- Main Box -->
+    <section id="main">
+        <!-- Messages -->
+        <div class="messages">
+            <ul></ul>
+        </div>
+        <!-- Message Form -->
+        <div class="messager">
+            <form action="#" id="message-form">
+                <input type="text" id="message" />
+                <button type="submit"><i class="fa fa-send"></i> Send</button>
+            </form>
+            <div class="status" title="Connected, lets talk!"></div>
+            <div class="clearfix"></div>
+        </div>
+    </section>
+    <!-- Notification Sounds -->
+    <audio id="audio">
+        <source src="assets/sounds/chat.mp3" type="audio/mpeg" />
+        <source src="assets/sounds/chat.wav" type="audio/wav" />
+    </audio>
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+    <script src="assets/js/animate-colors-min.js"></script>
+    <script src="assets/js/urlize.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="assets/js/client.js"></script>
+</body>
+</html>
