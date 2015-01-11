@@ -117,6 +117,7 @@ body {
     font-size: 14px;
     padding: 3px;
     color: #eeebac;
+    background-color: #1D1F21; /* Firefox & IE AnimateColor Fix */
 }
 .message {
     color: #c5c8c6;
