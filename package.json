@@ -9,7 +9,7 @@
   },
   "dependencies": {
     "mime": "^1.2.11",
-    "mongoose": "^3.8.9",
+    "mongoose": ">=5.7.5",
     "socket.io": "^0.9.16"
   },
   "devDependencies": {},
