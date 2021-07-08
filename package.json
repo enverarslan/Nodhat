@@ -10,7 +10,7 @@
   "dependencies": {
     "mime": "^1.2.11",
     "mongoose": ">=5.7.5",
-    "socket.io": "^0.9.16"
+    "socket.io": ">=2.4.0"
   },
   "devDependencies": {},
   "engines": {
